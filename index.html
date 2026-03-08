@@ -8,7 +8,7 @@
 
     <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Bebas+Neue&family=Oswald:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Special+Elite&family=VT323&family=Bebas+Neue&family=Oswald:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- External Stylesheet -->
@@ -16,6 +16,9 @@
 </head>
 
 <body>
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress"></div>
+
     <!-- Noise Overlay -->
     <div class="noise-overlay"></div>
     <div class="cursor-cross" id="cursor-cross">
@@ -38,6 +41,11 @@
     <nav>
         <a href="#" class="brand">CLICK2<span>STICKER</span></a>
 
+        <div class="search-wrapper">
+            <input type="text" class="search-bar" id="search-input" placeholder="🔍 SEARCH STICKERS..." autocomplete="off">
+            <div class="search-suggestions" id="search-suggestions"></div>
+        </div>
+
         <div class="nav-links" id="nav-links">
             <a href="#shop">Shop</a>
             <a href="#about">About</a>
@@ -55,27 +63,27 @@
     <!-- Marquee -->
     <div class="marquee-wrapper">
         <div class="marquee marquee-1">
-            <span>🔥 FREE WORLDWIDE SHIPPING ON ORDERS OVER $50</span>
-            <span>⚡ NEW 'CAR' COLLECTION JUST DROPPED</span>
-            <span>☠️ RESTOCK: HOOKED VIBE SERIES</span>
-            <span>🔥 BUY 3 GET 1 FREE LIMITED TIME</span>
-            <span>⚡ PREMIUM EXCLUSIVE GRADE VINYL</span>
-            <span>🔥 FREE WORLDWIDE SHIPPING ON ORDERS OVER $50</span>
-            <span>⚡ NEW 'CAR' COLLECTION JUST DROPPED</span>
-            <span>☠️ RESTOCK: HOOKED VIBE SERIES</span>
-            <span>🔥 BUY 3 GET 1 FREE LIMITED TIME</span>
-            <span>⚡ PREMIUM EXCLUSIVE GRADE VINYL</span>
+            <span>★ SLAP IT EVERYWHERE — EST. 2024</span>
+            <span>✦ PREMIUM DIE-CUT VINYL ONLY</span>
+            <span>★ FREE SHIPPING OVER ₹199</span>
+            <span>✦ HOOKED VIBE SERIES — IN STOCK</span>
+            <span>★ NEW CAR DROP — GET IT NOW</span>
+            <span>★ SLAP IT EVERYWHERE — EST. 2024</span>
+            <span>✦ PREMIUM DIE-CUT VINYL ONLY</span>
+            <span>★ FREE SHIPPING OVER ₹199</span>
+            <span>✦ HOOKED VIBE SERIES — IN STOCK</span>
+            <span>★ NEW CAR DROP — GET IT NOW</span>
         </div>
         <div class="marquee marquee-2">
-            <span>— PREMIUM VINYL — STICK IT — RAW —</span>
-            <span>— CLICK2STICKER — EXCLUSIVE DROPS —</span>
-            <span>— SLAP RESPONSIBLY — WORLDWIDE —</span>
-            <span>— PREMIUM VINYL — STICK IT — RAW —</span>
-            <span>— CLICK2STICKER — EXCLUSIVE DROPS —</span>
-            <span>— SLAP RESPONSIBLY — WORLDWIDE —</span>
-            <span>— PREMIUM VINYL — STICK IT — RAW —</span>
-            <span>— CLICK2STICKER — EXCLUSIVE DROPS —</span>
-            <span>— SLAP RESPONSIBLY — WORLDWIDE —</span>
+            <span>★ SLAP IT EVERYWHERE — EST. 2024</span>
+            <span>✦ PREMIUM DIE-CUT VINYL ONLY</span>
+            <span>★ FREE SHIPPING OVER ₹199</span>
+            <span>✦ HOOKED VIBE SERIES — IN STOCK</span>
+            <span>★ NEW CAR DROP — GET IT NOW</span>
+            <span>★ SLAP IT EVERYWHERE — EST. 2024</span>
+            <span>✦ PREMIUM DIE-CUT VINYL ONLY</span>
+            <span>★ FREE SHIPPING OVER ₹199</span>
+            <span>✦ HOOKED VIBE SERIES — IN STOCK</span>
         </div>
     </div>
 
@@ -85,12 +93,18 @@
         <section class="hero section-noise hero-noise-drift">
             <div class="hero-content">
                 <h1 class="hero-heading">
-                    <span class="hero-word"><span class="hero-char">S</span><span class="hero-char">L</span><span class="hero-char">A</span><span class="hero-char">P</span></span>
+                    <span class="hero-word"><span class="hero-char">S</span><span class="hero-char">L</span><span
+                            class="hero-char">A</span><span class="hero-char">P</span></span>
                     <span class="hero-word"><span class="hero-char">I</span><span class="hero-char">T</span></span>
-                    <span class="hero-word"><span class="hero-char">E</span><span class="hero-char">V</span><span class="hero-char">E</span><span class="hero-char">R</span><span class="hero-char">Y</span><span class="hero-char">W</span><span class="hero-char">H</span><span class="hero-char">E</span><span class="hero-char">R</span><span class="hero-char">E</span></span>
+                    <span class="hero-word"><span class="hero-char">E</span><span class="hero-char">V</span><span
+                            class="hero-char">E</span><span class="hero-char">R</span><span
+                            class="hero-char">Y</span><span class="hero-char">W</span><span
+                            class="hero-char">H</span><span class="hero-char">E</span><span
+                            class="hero-char">R</span><span class="hero-char">E</span></span>
                 </h1>
                 <p class="hero-subtitle">Premium die-cut vinyl stickers for your gear. Raw. Unapologetic.</p>
                 <a href="#shop" class="btn-brutal btn-hero">SHOP THE DROP</a>
+                <div class="hero-stamp">SINCE 2024</div>
             </div>
 
             <div class="hero-bg-stickers">
@@ -104,7 +118,8 @@
         <!-- Shop Gallery Section -->
         <section id="shop" class="gallery-section section-noise">
             <div class="section-header">
-                <h2 class="section-title-reveal"><span class="section-title-text">THE STASH</span><span class="section-title-block"></span></h2>
+                <h2 class="section-title-reveal"><span class="section-title-text"><span class="terminal-prefix">★
+                        </span>THE STASH</span><span class="section-title-block"></span></h2>
                 <div class="filters">
                     <button class="filter-btn active" data-filter="all">ALL</button>
                     <button class="filter-btn" data-filter="Car">CAR</button>
@@ -121,7 +136,8 @@
 
         <!-- Promo Banner -->
         <section class="banner section-noise">
-            <h2 class="section-title-reveal"><span class="section-title-text">STICK IT TO THE MAN</span><span class="section-title-block"></span></h2>
+            <h2 class="section-title-reveal"><span class="section-title-text"><span class="terminal-prefix">★
+                    </span>STICK IT TO THE MAN</span><span class="section-title-block"></span></h2>
             <p>Join the cartel and get 15% off your first order plus exclusive early access to limited edition drops.
             </p>
             <button class="btn-brutal">JOIN THE CARTEL</button>
@@ -194,6 +210,8 @@
     <div id="toast-notification" class="toast-hidden">Added to cart ✓</div>
 
     <!-- External Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="script.js"></script>
 </body>
 

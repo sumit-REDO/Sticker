@@ -121,33 +121,192 @@ function shuffleArray(array) {
 document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('product-grid');
     const filterBtns = document.querySelectorAll('.filter-btn');
+    const searchInput = document.getElementById('search-input');
 
     if (!grid) return;
 
-    // Initial render
+    // Initial setup
     const shuffledStickers = shuffleArray(stickers);
-    renderStickers(shuffledStickers, grid);
+    let currentFilter = 'all';
+    let currentSearchTerm = '';
+    let filterTimeout;
 
-    // Filtering logic
+    // Function to apply both filters
+    function applyFilters() {
+        clearTimeout(filterTimeout);
+        // Always start from full stickers array so search always works
+        let filtered = [...stickers];
+
+        // Apply category filter
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(sticker => sticker.category === currentFilter);
+        }
+
+        // Apply search filter on top
+        if (currentSearchTerm) {
+            const term = currentSearchTerm.toLowerCase();
+            filtered = filtered.filter(sticker =>
+                sticker.name.toLowerCase().includes(term) ||
+                sticker.category.toLowerCase().replace('_', ' ').includes(term) ||
+                sticker.desc.toLowerCase().includes(term)
+            );
+        }
+
+        // Render with Scatter Out Animation
+        const existingCards = grid.querySelectorAll('.card');
+        if (existingCards.length > 0) {
+            existingCards.forEach(card => {
+                const spreadX = (Math.random() - 0.5) * 600;
+                const spreadY = (Math.random() - 0.5) * 600;
+                const spreadRot = (Math.random() - 0.5) * 360;
+                card.style.setProperty('--scatter-x', spreadX + 'px');
+                card.style.setProperty('--scatter-y', spreadY + 'px');
+                card.style.setProperty('--scatter-rot', spreadRot + 'deg');
+                card.classList.add('scatter-out');
+            });
+            filterTimeout = setTimeout(() => {
+                renderFiltered(filtered);
+            }, 300);
+        } else {
+            renderFiltered(filtered);
+        }
+
+        function renderFiltered(data) {
+            grid.innerHTML = '';
+            if (data.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:80px 20px;">
+                    <div style="font-family:var(--font-display);font-size:2.5rem;color:var(--accent-1);letter-spacing:0.1em;">NO STICKERS FOUND</div>
+                    <div style="font-family:var(--font-body);font-size:0.9rem;color:#888;margin-top:12px;">Try searching something else</div>
+                </div>`;
+            } else {
+                renderStickers(data, grid);
+            }
+        }
+    }
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Search suggestions
+    const suggestionsBox = document.getElementById('search-suggestions');
+    let activeSuggestionIndex = -1;
+
+    function showSuggestions(term) {
+        if (!suggestionsBox) return;
+        if (!term || term.length < 1) {
+            suggestionsBox.classList.remove('visible');
+            suggestionsBox.innerHTML = '';
+            return;
+        }
+
+        const lower = term.toLowerCase();
+        const matches = stickers.filter(s =>
+            s.name.toLowerCase().includes(lower) ||
+            s.category.toLowerCase().replace('_', ' ').includes(lower)
+        ).slice(0, 6);
+
+        if (matches.length === 0) {
+            suggestionsBox.innerHTML = `<div class="suggestion-no-results">No stickers found for "${term}"</div>`;
+            suggestionsBox.classList.add('visible');
+            return;
+        }
+
+        suggestionsBox.innerHTML = matches.map((s, i) => {
+            const highlighted = s.name.replace(new RegExp(`(${term})`, 'gi'), '<mark>$1</mark>');
+            const cat = s.category.replace('_', ' ');
+            return `<div class="suggestion-item" data-id="${s.id}" data-index="${i}">
+                <img src="${s.src}" alt="${s.name}" onerror="this.style.display='none'">
+                <div class="suggestion-item-info">
+                    <div class="suggestion-item-name">${highlighted}</div>
+                    <div class="suggestion-item-category">${cat}</div>
+                </div>
+                <div class="suggestion-item-price">${s.price}</div>
+            </div>`;
+        }).join('');
+
+        suggestionsBox.classList.add('visible');
+        activeSuggestionIndex = -1;
+
+        // Click on suggestion — go to product
+        suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const id = item.getAttribute('data-id');
+                suggestionsBox.classList.remove('visible');
+                searchInput.value = '';
+                currentSearchTerm = '';
+                applyFilters();
+                setTimeout(() => showProduct(id), 50);
+            });
+        });
+    }
+
+    // Search — fires on every keystroke
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(function () {
+            currentSearchTerm = searchInput.value.trim();
+            showSuggestions(currentSearchTerm);
+            applyFilters();
+        }, 150));
+
+        // Keyboard nav in suggestions
+        searchInput.addEventListener('keydown', function (e) {
+            const items = suggestionsBox ? suggestionsBox.querySelectorAll('.suggestion-item') : [];
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, items.length - 1);
+                items.forEach((el, i) => el.classList.toggle('active', i === activeSuggestionIndex));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, -1);
+                items.forEach((el, i) => el.classList.toggle('active', i === activeSuggestionIndex));
+            } else if (e.key === 'Enter' && activeSuggestionIndex >= 0 && items[activeSuggestionIndex]) {
+                const id = items[activeSuggestionIndex].getAttribute('data-id');
+                suggestionsBox.classList.remove('visible');
+                searchInput.value = '';
+                currentSearchTerm = '';
+                applyFilters();
+                showProduct(id);
+            } else if (e.key === 'Escape') {
+                searchInput.value = '';
+                currentSearchTerm = '';
+                applyFilters();
+                suggestionsBox && suggestionsBox.classList.remove('visible');
+                searchInput.blur();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-wrapper')) {
+                suggestionsBox && suggestionsBox.classList.remove('visible');
+            }
+        });
+
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.trim()) showSuggestions(searchInput.value.trim());
+        });
+    }
+
+    // Initial Render
+    applyFilters();
+
+    // Filtering logic (Categories)
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             // Update active class
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Filter data
-            const filterValue = btn.getAttribute('data-filter');
-            let filteredStickers = [];
-
-            if (filterValue === 'all') {
-                filteredStickers = shuffledStickers;
-            } else {
-                filteredStickers = stickers.filter(s => s.category === filterValue);
-            }
-
-            // Render
-            grid.innerHTML = '';
-            renderStickers(filteredStickers, grid);
+            // Set current category filter
+            currentFilter = btn.getAttribute('data-filter');
+            applyFilters();
         });
     });
 });
@@ -167,7 +326,7 @@ function renderStickers(data, gridElement) {
         else if (index % 9 === 2) tagStr = '<span class="card-tag tag-sale">SALE</span>';
 
         const cardHTML = `
-            <div class="card" data-id="${sticker.id}" data-category="${sticker.category}" style="transition-delay: ${index * 0.05}s;">
+            <div class="card" data-id="${sticker.id}" data-category="${sticker.category}">
                 ${tagStr}
                 <div class="card-img-wrapper" title="${sticker.desc}">
                     <img src="${sticker.src}" alt="${sticker.name}" class="card-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><text x=\\'50%\\' y=\\'50%\\' font-size=\\'50\\' text-anchor=\\'middle\\' dy=\\'.3em\\'>🚫</text></svg>'" loading="lazy">
@@ -188,8 +347,21 @@ function renderStickers(data, gridElement) {
     });
 
     attachCardListeners();
-    observeCards();
-    observeSectionTitles();
+
+    // GSAP card stagger - fires immediately on render
+    if (typeof gsap !== 'undefined') {
+        const renderedCards = Array.from(gridElement.querySelectorAll('.card'));
+        gsap.fromTo(renderedCards,
+            { y: 60, opacity: 0, scale: 0.95 },
+            {
+                y: 0, opacity: 1, scale: 1,
+                duration: 0.5,
+                ease: 'power2.out',
+                stagger: 0.06,
+                clearProps: 'all'
+            }
+        );
+    }
 }
 
 function attachCardListeners() {
@@ -197,6 +369,22 @@ function attachCardListeners() {
     cards.forEach(card => {
         card.removeEventListener('click', handleCardClick);
         card.addEventListener('click', handleCardClick);
+
+        // 3D tilt on mouse move
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = ((y - centerY) / centerY) * -10;
+            const rotateY = ((x - centerX) / centerX) * 10;
+            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translate(-2px,-2px)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = '';
+        });
     });
     if (typeof updateMagneticTargets === 'function') updateMagneticTargets();
 }
@@ -296,8 +484,8 @@ function showProduct(id) {
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn-brutal" onclick="addToCart('${sticker.id}', parseInt(document.getElementById('qty-val').innerText)); toggleCart();">BUY NOW</button>
-                    <button class="btn-brutal" style="background:var(--bg-color);color:var(--text-color);" onclick="addToCart('${sticker.id}', parseInt(document.getElementById('qty-val').innerText))">ADD TO CART</button>
+                    <button class="btn-brutal btn-buy-now" onclick="addToCart('${sticker.id}', parseInt(document.getElementById('qty-val').innerText)); toggleCart();">BUY NOW</button>
+                    <button class="btn-brutal btn-add-cart" onclick="addToCart('${sticker.id}', parseInt(document.getElementById('qty-val').innerText))">ADD TO CART</button>
                 </div>
             </div>
         </div>
@@ -322,22 +510,22 @@ function showProduct(id) {
 }
 
 function hideProduct() {
-    productView.classList.replace('fade-in', 'fade-out');
+    const mv = document.getElementById('main-view');
+    const pv = document.getElementById('product-view');
+    if (!pv || !mv) return;
+
+    pv.classList.replace('fade-in', 'fade-out');
 
     setTimeout(() => {
-        productView.classList.add('hidden-view');
-        mainView.classList.remove('hidden-view');
+        pv.classList.add('hidden-view');
+        pv.classList.remove('fade-out');
+        mv.classList.remove('hidden-view');
+        void mv.offsetWidth;
+        mv.classList.remove('fade-out');
+        mv.classList.add('fade-in');
 
-        // Trigger reflow
-        void mainView.offsetWidth;
-
-        mainView.classList.replace('fade-out', 'fade-in');
-
-        // Auto scroll to shop section
         const shopSection = document.getElementById('shop');
-        if (shopSection) {
-            shopSection.scrollIntoView({ behavior: 'auto' });
-        }
+        if (shopSection) shopSection.scrollIntoView({ behavior: 'auto' });
     }, 400);
 }
 
@@ -415,7 +603,12 @@ function updateCartUI() {
     // Render items
     if (!itemsContainer) return;
     if (cart.length === 0) {
-        itemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+        itemsContainer.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:250px;gap:12px;">
+                <div style="font-size:3rem;">🛒</div>
+                <div style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.1em;">CART IS EMPTY</div>
+                <div style="font-family:var(--font-body);font-size:0.8rem;color:#888;text-align:center;">Go slap some stickers in here</div>
+            </div>`;
         return;
     }
 
@@ -444,9 +637,18 @@ function toggleCart(e) {
     if (e) e.preventDefault();
     const drawer = document.getElementById('cart-drawer');
     const overlay = document.getElementById('cart-overlay');
-    if (drawer && overlay) {
-        drawer.classList.toggle('open');
-        overlay.classList.toggle('hidden-view');
+    if (!drawer || !overlay) return;
+
+    const isOpen = drawer.classList.contains('open');
+    if (isOpen) {
+        drawer.classList.remove('open');
+        overlay.classList.add('hidden-view');
+        document.body.style.overflow = '';
+    } else {
+        drawer.classList.remove('hidden-drawer');
+        drawer.classList.add('open');
+        overlay.classList.remove('hidden-view');
+        document.body.style.overflow = 'hidden';
     }
 }
 
@@ -465,48 +667,136 @@ window.removeFromCart = removeFromCart;
 window.updateCartQty = updateCartQty;
 window.toggleCart = toggleCart;
 
-// Init cart UI and section title reveals on load
+// Init cart UI and GSAP on load
 document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
-    observeSectionTitles();
+    initGSAPAnimations();
 });
 
-// -----------------------------------------
-// Animations
-// -----------------------------------------
+// GSAP Implementation Logic
+function initGSAPAnimations() {
+    if (typeof gsap === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
 
-// Scroll Animation Observer (Cards)
-function observeCards() {
-    const items = document.querySelectorAll('.card');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                setTimeout(() => entry.target.classList.add('visible'), 50);
-                observer.unobserve(entry.target);
+    // 1. Hero Content Stagger
+    gsap.from(['.hero-subtitle', '.btn-hero'], {
+        y: 60,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out',
+        stagger: 0.2,
+        delay: 1 // Match loading sequence to character renders
+    });
+
+    // 2. Section Titles Cinematic Reveal
+    gsap.utils.toArray('.section-title-reveal').forEach(title => {
+        gsap.from(title, {
+            scrollTrigger: {
+                trigger: title,
+                start: 'top 85%'
+            },
+            x: -80,
+            opacity: 0,
+            duration: 0.8,
+            ease: 'power2.out'
+        });
+    });
+
+    // 4. Navbar Hide/Show
+    const nav = document.querySelector('nav');
+    if (nav) {
+        ScrollTrigger.create({
+            start: 'top top',
+            end: 99999,
+            onUpdate: (self) => {
+                if (nav.classList.contains('menu-open')) return;
+
+                if (self.direction === 1 && self.scrollY > 100) {
+                    gsap.to(nav, { yPercent: -100, duration: 0.3 });
+                } else {
+                    gsap.to(nav, { yPercent: 0, duration: 0.3 });
+                }
             }
         });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-    items.forEach(item => observer.observe(item));
-}
+    }
 
-// Section title text reveal - sliding block wipe on scroll
-function observeSectionTitles() {
-    const titles = document.querySelectorAll('.section-title-reveal');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('revealed');
+    // 5. Promo Banner Scramble
+    const bannerHeading = document.querySelector('.banner .section-title-text');
+    if (bannerHeading && bannerHeading.lastChild) {
+        ScrollTrigger.create({
+            trigger: '.banner',
+            start: 'top 80%',
+            once: true,
+            onEnter: () => {
+                const originalText = bannerHeading.lastChild.nodeValue.trim();
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+                let iterations = 0;
+
+                const interval = setInterval(() => {
+                    bannerHeading.lastChild.nodeValue = " " + originalText.split('').map((c, i) => {
+                        if (c === ' ') return ' ';
+                        if (i < iterations) return originalText[i];
+                        return chars[Math.floor(Math.random() * chars.length)];
+                    }).join('');
+
+                    iterations += 1 / 3;
+                    if (iterations >= originalText.length) {
+                        clearInterval(interval);
+                        bannerHeading.lastChild.nodeValue = " " + originalText;
+                    }
+                }, 30);
             }
         });
-    }, { threshold: 0.2 });
-    titles.forEach(t => observer.observe(t));
+    }
+
+    // 6. Footer Reveal
+    gsap.from('.footer-col', {
+        scrollTrigger: {
+            trigger: 'footer',
+            start: 'top 90%'
+        },
+        y: 40,
+        opacity: 0,
+        duration: 0.7,
+        ease: 'power2.out',
+        stagger: 0.15
+    });
+
+    // 7. Scroll Progress Bar
+    gsap.to('#scroll-progress', {
+        width: '100%',
+        ease: 'none',
+        scrollTrigger: {
+            trigger: document.body,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: true
+        }
+    });
 }
 
-// Brutalist Crosshair Cursor
+// Brutalist Crosshair Cursor & Trail Stickers
 document.addEventListener('DOMContentLoaded', () => {
     const cursorCross = document.getElementById('cursor-cross');
 
-    let mouseX = 0, mouseY = 0;
+    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+    let trailStickers = [];
+
+    const trailDelays = [0.08, 0.15, 0.25];
+    if (window.innerWidth > 1024) {
+        const trailSrcs = shuffleArray(stickers).slice(0, 3);
+        trailSrcs.forEach((sticker, i) => {
+            const img = document.createElement('img');
+            img.src = sticker.src;
+            img.className = 'cursor-trail-sticker';
+            document.body.appendChild(img);
+            trailStickers.push({
+                el: img, x: mouseX, y: mouseY, vx: 0, vy: 0, rot: 0, delay: trailDelays[i]
+            });
+        });
+    }
+
+    let mouseTimeout;
 
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
@@ -517,6 +807,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cursorCross.style.top = mouseY + 'px';
         }
 
+        trailStickers.forEach(ts => ts.el.style.opacity = '1');
+        clearTimeout(mouseTimeout);
+        mouseTimeout = setTimeout(() => {
+            trailStickers.forEach(ts => ts.el.style.opacity = '0');
+        }, 500);
+
         // Card hover: VIEW circle. Other hovers: default crosshair
         if (e.target.closest('.card') && !e.target.closest('.add-to-cart')) {
             cursorCross?.classList.add('cursor-card-hover');
@@ -524,6 +820,24 @@ document.addEventListener('DOMContentLoaded', () => {
             cursorCross?.classList.remove('cursor-card-hover');
         }
     });
+
+    function updateTrail() {
+        const dt = 16;
+        trailStickers.forEach(ts => {
+            const factor = 1 - Math.exp(-dt / (ts.delay * 1000));
+            const dx = mouseX - ts.x;
+            const dy = mouseY - ts.y;
+            ts.vx = dx * factor;
+            ts.vy = dy * factor;
+            ts.x += ts.vx;
+            ts.y += ts.vy;
+            const mappedRot = (ts.vx + ts.vy) * 0.5;
+            ts.rot += (mappedRot - ts.rot) * 0.1;
+            ts.el.style.transform = `translate(${ts.x - 35}px, ${ts.y - 35}px) rotate(${ts.rot}deg)`;
+        });
+        requestAnimationFrame(updateTrail);
+    }
+    if (window.innerWidth > 1024) requestAnimationFrame(updateTrail);
 
     // Parallax Hero Effect
     const heroStickers = document.querySelector('.hero-bg-stickers');
