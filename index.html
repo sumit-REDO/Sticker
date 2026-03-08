@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLICK2STICKER | Premium Streetwear Stickers</title>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400..800&display=swap"
+        rel="stylesheet">
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Halftone Overlay & Custom Cursor -->
+    <div class="halftone-overlay"></div>
+    <div class="cursor-cross" id="cursor-cross"></div>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-counter" id="loader-counter">0%</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="#" class="brand">CLICK2<span>STICKER</span></a>
+        <div class="nav-links">
+            <a href="#shop">Shop</a>
+            <a href="#about">About</a>
+            <a href="#faq">FAQ</a>
+            <a href="#" id="nav-cart-btn" onclick="toggleCart(event)">Cart (<span id="nav-cart-count">0</span>)</a>
+        </div>
+    </nav>
+
+    <!-- Marquee -->
+    <div class="marquee-wrapper">
+        <div class="marquee">
+            <span>🔥 FREE WORLDWIDE SHIPPING ON ORDERS OVER $50</span>
+            <span>⚡ NEW 'CAR' COLLECTION JUST DROPPED</span>
+            <span>☠️ RESTOCK: HOOKED VIBE SERIES</span>
+            <span>🔥 BUY 3 GET 1 FREE LIMITED TIME</span>
+            <span>⚡ PREMIUM EXCLUSIVE GRADE VINYL</span>
+            <span>🔥 FREE WORLDWIDE SHIPPING ON ORDERS OVER $50</span>
+            <span>⚡ NEW 'CAR' COLLECTION JUST DROPPED</span>
+            <span>☠️ RESTOCK: HOOKED VIBE SERIES</span>
+            <span>🔥 BUY 3 GET 1 FREE LIMITED TIME</span>
+            <span>⚡ PREMIUM EXCLUSIVE GRADE VINYL</span>
+        </div>
+    </div>
+
+    <!-- Main View (Hero & Gallery) -->
+    <div id="main-view" class="fade-in">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="stagger-text chrome-text">
+                    <span>S</span><span>L</span><span>A</span><span>P</span><br>
+                    <span>I</span><span>T</span>
+                </h1>
+                <p class="hero-subtitle stagger-text">Premium die-cut vinyl stickers for your gear. Raw. Unapologetic.
+                </p>
+                <a href="#shop" class="btn-brutal stagger-text">SHOP THE DROP</a>
+            </div>
+
+            <div class="hero-bg-stickers">
+                <img src="Car/Drifting.png" alt="Floating Car Sticker" class="mockup-1">
+                <img src="Cat/Chaos_Kitty.png" alt="Floating Cat Sticker" class="mockup-2">
+            </div>
+
+            <div class="scroll-indicator">SCROLL</div>
+        </section>
+
+        <!-- Shop Gallery Section -->
+        <section id="shop" class="gallery-section">
+            <div class="section-header">
+                <h2>THE STASH</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">ALL</button>
+                    <button class="filter-btn" data-filter="Car">CAR</button>
+                    <button class="filter-btn" data-filter="Cat">CAT</button>
+                    <button class="filter-btn" data-filter="Coffee">COFFEE</button>
+                    <button class="filter-btn" data-filter="Hooked_Vibe">HOOKED VIBE</button>
+                </div>
+            </div>
+
+            <div class="grid" id="product-grid">
+                <!-- Product cards injected via JS -->
+            </div>
+        </section>
+
+        <!-- Promo Banner -->
+        <section class="banner">
+            <h2>STICK IT TO THE MAN</h2>
+            <p>Join the cartel and get 15% off your first order plus exclusive early access to limited edition drops.
+            </p>
+            <button class="btn-brutal">JOIN THE CARTEL</button>
+        </section>
+    </div> <!-- End Main View -->
+
+    <!-- Product Detail View -->
+    <div id="product-view" class="hidden-view">
+        <div id="product-details-container">
+            <!-- Product Output from JS -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <a href="#" class="brand"
+                    style="font-size: 2rem; display: block; margin-bottom: 20px;">CLICK2<span>STICKER</span></a>
+                <p style="color: #888; font-size: 1rem; font-family: var(--font-body); font-weight: bold;">Elevating
+                    street culture one sticker at a time. Premium vinyl only.</p>
+                <div class="social-links">
+                    <a href="#" class="social-icon">IG</a>
+                    <a href="#" class="social-icon">TT</a>
+                    <a href="#" class="social-icon">X</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h3>SHOP</h3>
+                <ul class="footer-links">
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">Bundles</a></li>
+                    <li><a href="#">Gift Cards</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>SUPPORT</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 CLICK2STICKER. ALL RIGHTS RESERVED. SLAP RESPONSIBLY.
+        </div>
+    </footer>
+    <!-- Cart Drawer & Toast -->
+    <div class="cart-overlay hidden-view" id="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer hidden-drawer" id="cart-drawer">
+        <div class="cart-header">
+            <h2>YOUR CART <span id="cart-count-title">0</span></h2>
+            <button class="cart-close" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cart-items">
+            <!-- Items injected via JS -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-subtotal">
+                <span>SUBTOTAL</span>
+                <span id="cart-subtotal">₹0</span>
+            </div>
+            <button class="btn-brutal btn-checkout">CHECKOUT</button>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="toast-hidden">Added to cart ✓</div>
+
+    <!-- External Script -->
+    <script src="script.js"></script>
+</body>
+
+</html>
