@@ -370,21 +370,23 @@ function attachCardListeners() {
         card.removeEventListener('click', handleCardClick);
         card.addEventListener('click', handleCardClick);
 
-        // 3D tilt on mouse move
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -10;
-            const rotateY = ((x - centerX) / centerX) * 10;
-            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translate(-2px,-2px)`;
-        });
+        // 3D tilt on mouse move — desktop only
+        if (window.innerWidth > 768) {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translate(-2px,-2px)`;
+            });
 
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = '';
-        });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        }
     });
     if (typeof updateMagneticTargets === 'function') updateMagneticTargets();
 }
@@ -797,8 +799,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let mouseTimeout;
+    let lastMouseMove = 0;
 
     document.addEventListener('mousemove', (e) => {
+        const now = Date.now();
+        if (now - lastMouseMove < 16) return; // cap at ~60fps
+        lastMouseMove = now;
+
         mouseX = e.clientX;
         mouseY = e.clientY;
 
@@ -839,15 +846,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (window.innerWidth > 1024) requestAnimationFrame(updateTrail);
 
-    // Parallax Hero Effect
+    // Parallax Hero Effect - throttled
     const heroStickers = document.querySelector('.hero-bg-stickers');
     if (heroStickers) {
+        let lastParallax = 0;
         document.addEventListener('mousemove', (e) => {
+            const now = Date.now();
+            if (now - lastParallax < 33) return; // 30fps max
+            lastParallax = now;
             const x = (e.clientX / window.innerWidth - 0.5) * 40;
             const y = (e.clientY / window.innerHeight - 0.5) * 40;
             heroStickers.style.transform = `translateY(-50%) translate(${x}px, ${y}px)`;
         });
     }
+
+    // -----------------------------------------
+    // Mobile Search Toggle
+    // -----------------------------------------
+    const mobileSearchBtn = document.getElementById('mobile-search-btn');
+    const searchWrapper = document.getElementById('search-wrapper');
+
+    if (mobileSearchBtn && searchWrapper) {
+        mobileSearchBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            searchWrapper.classList.toggle('mobile-open');
+            if (searchWrapper.classList.contains('mobile-open')) {
+                searchInput && searchInput.focus();
+                mobileSearchBtn.textContent = '✕';
+            } else {
+                mobileSearchBtn.textContent = '🔍';
+                if (searchInput) { searchInput.value = ''; currentSearchTerm = ''; }
+                suggestionsBox && suggestionsBox.classList.remove('visible');
+            }
+        });
+
+        // Close search when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#search-wrapper') && !e.target.closest('#mobile-search-btn')) {
+                searchWrapper.classList.remove('mobile-open');
+                mobileSearchBtn.textContent = '🔍';
+            }
+        });
+    }
+
+    // Hide mobile search btn on desktop
+    function handleSearchLayout() {
+        if (!mobileSearchBtn || !searchWrapper) return;
+        if (window.innerWidth > 768) {
+            searchWrapper.classList.remove('mobile-open');
+            searchWrapper.style.display = '';
+            mobileSearchBtn.style.display = 'none';
+        } else {
+            mobileSearchBtn.style.display = 'flex';
+            if (!searchWrapper.classList.contains('mobile-open')) {
+                searchWrapper.style.display = '';
+            }
+        }
+    }
+    handleSearchLayout();
+    window.addEventListener('resize', handleSearchLayout);
 
     // -----------------------------------------
     // Mobile Hamburger Menu Logic

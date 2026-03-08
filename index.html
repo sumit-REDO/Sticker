@@ -39,9 +39,11 @@
 
     <!-- Navbar -->
     <nav>
-        <a href="#" class="brand">CLICK2<span>STICKER</span></a>
+        <a href="#" class="brand" id="brand-logo" onclick="if(document.getElementById('product-view') && !document.getElementById('product-view').classList.contains('hidden-view')){event.preventDefault();hideProduct();}">CLICK2<span>STICKER</span></a>
 
-        <div class="search-wrapper">
+        <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Search">🔍</button>
+
+        <div class="search-wrapper" id="search-wrapper">
             <input type="text" class="search-bar" id="search-input" placeholder="🔍 SEARCH STICKERS..." autocomplete="off">
             <div class="search-suggestions" id="search-suggestions"></div>
         </div>
