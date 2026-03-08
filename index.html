@@ -8,7 +8,7 @@
 
     <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400..800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Bebas+Neue&family=Oswald:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- External Stylesheet -->
@@ -16,29 +16,45 @@
 </head>
 
 <body>
-    <!-- Halftone Overlay & Custom Cursor -->
-    <div class="halftone-overlay"></div>
-    <div class="cursor-cross" id="cursor-cross"></div>
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
+    <div class="cursor-cross" id="cursor-cross">
+        <span class="cursor-plus">+</span>
+        <span class="cursor-view-ring">VIEW</span>
+    </div>
+
+    <!-- Page Transition Wipe -->
+    <div id="page-transition" class="page-transition"></div>
 
     <!-- Preloader -->
     <div id="preloader">
-        <div class="loader-counter" id="loader-counter">0%</div>
+        <div class="loader-content">
+            <span class="loader-brand">CLICK2STICKER</span>
+            <div class="loader-counter" id="loader-counter">0%</div>
+        </div>
     </div>
 
     <!-- Navbar -->
     <nav>
         <a href="#" class="brand">CLICK2<span>STICKER</span></a>
-        <div class="nav-links">
+
+        <div class="nav-links" id="nav-links">
             <a href="#shop">Shop</a>
             <a href="#about">About</a>
             <a href="#faq">FAQ</a>
             <a href="#" id="nav-cart-btn" onclick="toggleCart(event)">Cart (<span id="nav-cart-count">0</span>)</a>
         </div>
+
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </nav>
 
     <!-- Marquee -->
     <div class="marquee-wrapper">
-        <div class="marquee">
+        <div class="marquee marquee-1">
             <span>🔥 FREE WORLDWIDE SHIPPING ON ORDERS OVER $50</span>
             <span>⚡ NEW 'CAR' COLLECTION JUST DROPPED</span>
             <span>☠️ RESTOCK: HOOKED VIBE SERIES</span>
@@ -49,21 +65,31 @@
             <span>☠️ RESTOCK: HOOKED VIBE SERIES</span>
             <span>🔥 BUY 3 GET 1 FREE LIMITED TIME</span>
             <span>⚡ PREMIUM EXCLUSIVE GRADE VINYL</span>
+        </div>
+        <div class="marquee marquee-2">
+            <span>— PREMIUM VINYL — STICK IT — RAW —</span>
+            <span>— CLICK2STICKER — EXCLUSIVE DROPS —</span>
+            <span>— SLAP RESPONSIBLY — WORLDWIDE —</span>
+            <span>— PREMIUM VINYL — STICK IT — RAW —</span>
+            <span>— CLICK2STICKER — EXCLUSIVE DROPS —</span>
+            <span>— SLAP RESPONSIBLY — WORLDWIDE —</span>
+            <span>— PREMIUM VINYL — STICK IT — RAW —</span>
+            <span>— CLICK2STICKER — EXCLUSIVE DROPS —</span>
+            <span>— SLAP RESPONSIBLY — WORLDWIDE —</span>
         </div>
     </div>
 
     <!-- Main View (Hero & Gallery) -->
     <div id="main-view" class="fade-in">
         <!-- Hero Section -->
-        <section class="hero">
+        <section class="hero section-noise hero-noise-drift">
             <div class="hero-content">
-                <h1 class="stagger-text chrome-text">
-                    <span>S</span><span>L</span><span>A</span><span>P</span><br>
-                    <span>I</span><span>T</span>
+                <h1 class="hero-heading">
+                    <span class="hero-word"><span class="hero-char">S</span><span class="hero-char">L</span><span class="hero-char">A</span><span class="hero-char">P</span></span>
+                    <span class="hero-word"><span class="hero-char">I</span><span class="hero-char">T</span></span>
                 </h1>
-                <p class="hero-subtitle stagger-text">Premium die-cut vinyl stickers for your gear. Raw. Unapologetic.
-                </p>
-                <a href="#shop" class="btn-brutal stagger-text">SHOP THE DROP</a>
+                <p class="hero-subtitle">Premium die-cut vinyl stickers for your gear. Raw. Unapologetic.</p>
+                <a href="#shop" class="btn-brutal btn-hero">SHOP THE DROP</a>
             </div>
 
             <div class="hero-bg-stickers">
@@ -75,9 +101,9 @@
         </section>
 
         <!-- Shop Gallery Section -->
-        <section id="shop" class="gallery-section">
+        <section id="shop" class="gallery-section section-noise">
             <div class="section-header">
-                <h2>THE STASH</h2>
+                <h2 class="section-title-reveal"><span class="section-title-text">THE STASH</span><span class="section-title-block"></span></h2>
                 <div class="filters">
                     <button class="filter-btn active" data-filter="all">ALL</button>
                     <button class="filter-btn" data-filter="Car">CAR</button>
@@ -93,8 +119,8 @@
         </section>
 
         <!-- Promo Banner -->
-        <section class="banner">
-            <h2>STICK IT TO THE MAN</h2>
+        <section class="banner section-noise">
+            <h2 class="section-title-reveal"><span class="section-title-text">STICK IT TO THE MAN</span><span class="section-title-block"></span></h2>
             <p>Join the cartel and get 15% off your first order plus exclusive early access to limited edition drops.
             </p>
             <button class="btn-brutal">JOIN THE CARTEL</button>
@@ -102,14 +128,14 @@
     </div> <!-- End Main View -->
 
     <!-- Product Detail View -->
-    <div id="product-view" class="hidden-view">
+    <div id="product-view" class="hidden-view section-noise">
         <div id="product-details-container">
             <!-- Product Output from JS -->
         </div>
     </div>
 
     <!-- Footer -->
-    <footer>
+    <footer class="section-noise">
         <div class="footer-content">
             <div class="footer-col">
                 <a href="#" class="brand"

@@ -55,7 +55,7 @@ const stickers = [
     { id: 'hv15', src: 'Hooked_Vibe/cigarette pack_ Sticker.png', name: 'Pack Sticker', category: 'Hooked_Vibe', price: '₹15', desc: 'Distressed, faded, and full of stories. The ultimate nostalgic accessory.' }
 ];
 
-// Preloader 0-100 Logic
+// Preloader: 0-100%, glitch 3x, explode
 function initPreloader() {
     const preloader = document.getElementById('preloader');
     const counter = document.getElementById('loader-counter');
@@ -64,32 +64,40 @@ function initPreloader() {
 
     let count = 0;
     const interval = setInterval(() => {
-        count += Math.floor(Math.random() * 15) + 5; // Random jump
-
+        count += Math.floor(Math.random() * 12) + 4;
         if (count >= 100) {
             count = 100;
             clearInterval(interval);
             if (counter) counter.innerText = count + '%';
 
-            // Brutalist Wipe effect
+            // Glitch 3 times
             setTimeout(() => {
-                preloader.classList.add('loaded');
-
-                // Trigger hero stagger animation
-                document.querySelectorAll('.stagger-text').forEach((el, index) => {
-                    setTimeout(() => {
-                        el.classList.add('visible');
-                    }, 400 + (index * 200));
-                });
-
+                preloader.classList.add('preloader-glitch');
                 setTimeout(() => {
-                    preloader.style.display = 'none';
-                }, 800);
-            }, 300);
+                    preloader.classList.remove('preloader-glitch');
+                    setTimeout(() => {
+                        preloader.classList.add('preloader-glitch');
+                        setTimeout(() => {
+                            preloader.classList.remove('preloader-glitch');
+                            setTimeout(() => {
+                                preloader.classList.add('preloader-glitch');
+                                setTimeout(() => {
+                                    preloader.classList.remove('preloader-glitch');
+                                    // Explode outward
+                                    preloader.classList.add('preloader-explode');
+                                    setTimeout(() => {
+                                        preloader.style.display = 'none';
+                                    }, 650);
+                                }, 100);
+                            }, 100);
+                        }, 100);
+                    }, 100);
+                }, 100);
+            }, 200);
         } else {
             if (counter) counter.innerText = count + '%';
         }
-    }, 50);
+    }, 40);
 }
 
 // Ensure the preloader runs regardless of ready state differences
@@ -179,10 +187,9 @@ function renderStickers(data, gridElement) {
         gridElement.insertAdjacentHTML('beforeend', cardHTML);
     });
 
-    // Attach event listeners after rendering
     attachCardListeners();
-    // Re-trigger scroll observer for new items
     observeCards();
+    observeSectionTitles();
 }
 
 function attachCardListeners() {
@@ -200,6 +207,24 @@ function handleCardClick(e) {
     showProduct(id);
 }
 
+// Page transition wipe - called before showProduct
+function runPageTransitionWipe(callback) {
+    const wipe = document.getElementById('page-transition');
+    if (!wipe) {
+        if (callback) callback();
+        return;
+    }
+    wipe.classList.remove('reverse');
+    wipe.classList.add('active');
+    setTimeout(() => {
+        if (callback) callback();
+        wipe.classList.add('reverse');
+        setTimeout(() => {
+            wipe.classList.remove('active', 'reverse');
+        }, 600);
+    }, 600);
+}
+
 // -----------------------------------------
 // View Transition Logic (Fixing the blank bug)
 // -----------------------------------------
@@ -210,6 +235,8 @@ const productDetailsContainer = document.getElementById('product-details-contain
 function showProduct(id) {
     const sticker = stickers.find(s => s.id === id);
     if (!sticker) return;
+    const container = document.getElementById('product-details-container');
+    if (!container) return;
 
     const displayCategory = sticker.category.replace('_', ' ').toUpperCase();
 
@@ -228,7 +255,7 @@ function showProduct(id) {
     });
 
     // Populate HTML
-    productDetailsContainer.innerHTML = `
+    container.innerHTML = `
         <div class="product-split">
             <div class="product-image-container">
                 <img src="${sticker.src}" alt="${sticker.name}" class="product-large-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><text x=\\'50%\\' y=\\'50%\\' font-size=\\'50\\' text-anchor=\\'middle\\' dy=\\'.3em\\'>🚫</text></svg>'">
@@ -281,22 +308,17 @@ function showProduct(id) {
         </div>
     `;
 
-    // Swap cleanly by hiding main, showing product
+    // Page transition wipe, then show product
     window.scrollTo(0, 0);
-    mainView.classList.replace('fade-in', 'fade-out');
-
-    setTimeout(() => {
-        mainView.classList.add('hidden-view');
-        productView.classList.remove('hidden-view');
-
-        // Trigger reflow
-        void productView.offsetWidth;
-
-        productView.classList.replace('fade-out', 'fade-in');
-        if (!productView.classList.contains('fade-in')) {
-            productView.classList.add('fade-in');
-        }
-    }, 400); // match CSS transition time
+    runPageTransitionWipe(() => {
+        const mv = document.getElementById('main-view');
+        const pv = document.getElementById('product-view');
+        if (!mv || !pv) return;
+        mv.classList.add('hidden-view');
+        pv.classList.remove('hidden-view', 'fade-out');
+        pv.classList.add('fade-in');
+        void pv.offsetWidth;
+    });
 }
 
 function hideProduct() {
@@ -443,34 +465,41 @@ window.removeFromCart = removeFromCart;
 window.updateCartQty = updateCartQty;
 window.toggleCart = toggleCart;
 
-// Init cart UI on load
+// Init cart UI and section title reveals on load
 document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
+    observeSectionTitles();
 });
 
 // -----------------------------------------
 // Animations
 // -----------------------------------------
 
-// Scroll Animation Observer (Cards overshooting slam)
+// Scroll Animation Observer (Cards)
 function observeCards() {
     const items = document.querySelectorAll('.card');
-
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.classList.add('visible');
-                }, 50);
+                setTimeout(() => entry.target.classList.add('visible'), 50);
                 observer.unobserve(entry.target);
             }
         });
-    }, {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    });
-
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
     items.forEach(item => observer.observe(item));
+}
+
+// Section title text reveal - sliding block wipe on scroll
+function observeSectionTitles() {
+    const titles = document.querySelectorAll('.section-title-reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+            }
+        });
+    }, { threshold: 0.2 });
+    titles.forEach(t => observer.observe(t));
 }
 
 // Brutalist Crosshair Cursor
@@ -488,11 +517,11 @@ document.addEventListener('DOMContentLoaded', () => {
             cursorCross.style.top = mouseY + 'px';
         }
 
-        // Check if hovering over interactive element to apply crosshair interaction styles
-        if (e.target.closest('a, button, .card, .filter-btn, .back-btn, .related-card')) {
-            document.body.classList.add('cursor-hover');
+        // Card hover: VIEW circle. Other hovers: default crosshair
+        if (e.target.closest('.card') && !e.target.closest('.add-to-cart')) {
+            cursorCross?.classList.add('cursor-card-hover');
         } else {
-            document.body.classList.remove('cursor-hover');
+            cursorCross?.classList.remove('cursor-card-hover');
         }
     });
 
@@ -503,6 +532,42 @@ document.addEventListener('DOMContentLoaded', () => {
             const x = (e.clientX / window.innerWidth - 0.5) * 40;
             const y = (e.clientY / window.innerHeight - 0.5) * 40;
             heroStickers.style.transform = `translateY(-50%) translate(${x}px, ${y}px)`;
+        });
+    }
+
+    // -----------------------------------------
+    // Mobile Hamburger Menu Logic
+    // -----------------------------------------
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const nav = document.querySelector('nav');
+    const navLinks = document.querySelectorAll('.nav-links a');
+
+    if (hamburgerBtn && nav) {
+        // Toggle menu on click
+        hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            nav.classList.toggle('menu-open');
+            if (nav.classList.contains('menu-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Close menu when clicking a link
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('menu-open');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
+                nav.classList.remove('menu-open');
+                document.body.style.overflow = '';
+            }
         });
     }
 });
